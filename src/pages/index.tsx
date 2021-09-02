@@ -1,8 +1,33 @@
 import SafeEnvironment from "UI/components/feedback/SaveEnvironment/SafeEnvironment";
 import PageTitle from "UI/components/data-display/PageTitle/PageTitle";
 import UserInformation from "UI/components/data-display/UserInformation/UserInformation";
+import TextFieldMask from "UI/components/inputs/TextFieldMAsk/TextFieldMask";
+import {
+  Button,
+  Typography,
+  Container,
+  CircularProgress,
+} from "@material-ui/core";
+import {
+  FormElementsContainer,
+  ProfissionaisPaper,
+  ProfissionaisContainer,
+} from "ui/styles/Pages/index.style";
+import useIndex from "data/hooks/pages/useIndex.page";
 
 export default function Home() {
+  const {
+    cep,
+    setCep,
+    cepValido,
+    buscarProfissionais,
+    erro,
+    diaristas,
+    buscaFeita,
+    carregando,
+    diaristasRestantes,
+  } = useIndex();
+
   return (
     <div>
       <SafeEnvironment />
@@ -13,12 +38,72 @@ export default function Home() {
         }
       />
 
-      <UserInformation
-        name={"João Pedro"}
-        picture={"https://github.com/Maddox78.png"}
-        rating={4}
-        description={"São Luis"}
-      />
+      <Container>
+        <FormElementsContainer>
+          <TextFieldMask
+            mask={"99.999-999"}
+            label={"Digite o seu CEP:"}
+            fullWidth
+            variant={"outlined"}
+            value={cep}
+            onChange={(event) => setCep(event.target.value)}
+          />
+
+          {erro && <Typography color={"error"}>{erro}</Typography>}
+
+          <Button
+            variant={"contained"}
+            color={"secondary"}
+            sx={{ width: "220px" }}
+            disabled={!cepValido || carregando}
+            onClick={() => buscarProfissionais(cep)}
+          >
+            {carregando ? <CircularProgress size={20} /> : "Buscar"}
+          </Button>
+        </FormElementsContainer>
+
+        {buscaFeita &&
+          (diaristas.length > 0 ? (
+            <ProfissionaisPaper>
+              <ProfissionaisContainer>
+                {diaristas.map((item, index) => {
+                  return (
+                    <UserInformation
+                      key={index}
+                      name={item.nome_completo}
+                      picture={item.foto_usuario}
+                      rating={item.reputacao}
+                      description={item.cidade}
+                    />
+                  );
+                })}
+              </ProfissionaisContainer>
+
+              <Container sx={{ textAlign: "center" }}>
+                {diaristasRestantes > 0 && (
+                  <Typography sx={{ mt: 5 }}>
+                    ... E mais {diaristasRestantes}{" "}
+                    {diaristasRestantes > 1
+                      ? "profissionais atendem"
+                      : "profissional atende"}{" "}
+                    ao seu endereço.
+                  </Typography>
+                )}
+                <Button
+                  variant={"contained"}
+                  color={"secondary"}
+                  sx={{ mt: 5 }}
+                >
+                  Contratar um profissional
+                </Button>
+              </Container>
+            </ProfissionaisPaper>
+          ) : (
+            <Typography align={"center"} color={"textPrimary"}>
+              Nenhum profissional disponível na região
+            </Typography>
+          ))}
+      </Container>
     </div>
   );
 }
